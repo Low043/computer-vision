@@ -1,4 +1,6 @@
 import ffmpeg from 'fluent-ffmpeg';
+import Tesseract from 'tesseract.js';
+import sharp from 'sharp';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -11,19 +13,28 @@ if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir);
 }
 
-ffmpeg(process.env.VIDEO_URL)
-    .inputOptions('-rtsp_transport', 'tcp') // Usando protocolo tcp
-    .outputOptions(['-vf', 'fps=1', '-q:v', '25']) // Salvando 1 frame p/s, qualidade 25 (2 a 31)
+async function processImage(imageBuffer: Buffer) {
+    const cropArea = { left: 350, top: 195, width: 220, height: 92 };
+    
+    const result = await sharp(imageBuffer).extract(cropArea)
+        .modulate({ brightness: 2, saturation: 20 })
+        .normalise({ lower: 20, upper: 80 })
+        .toBuffer();
 
-    // Manipuladores de eventos
-    .on('start', (commandLine) => {
-        console.log('🚀 Comando FFmpeg iniciado: ' + commandLine);
-    })
-    .on('error', (err) => {
-        console.error('❌ Ocorreu um erro:', err.message);
-    })
-    .on('end', () => {
-        console.log('✔️ Processamento finalizado.');
-    })
+    fs.writeFileSync(path.join(outputDir, 'processed.jpg'), result);
 
-    .save(path.join(outputDir, 'frame-%d.jpg')); //%d para número do frame
+    return result;
+}
+
+async function getTextFromBuffer(imageBuffer: Buffer) {
+    const result = await Tesseract.recognize(imageBuffer, 'ssd');
+    return result.data.text;
+}
+
+(async () => {
+    const imageBuffer = fs.readFileSync(path.join(outputDir, 'raw.jpg'));
+    const processedImage = await processImage(imageBuffer);
+
+    const text = await getTextFromBuffer(processedImage);
+    console.log('Texto extraído:', text);
+})();
