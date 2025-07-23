@@ -1,5 +1,4 @@
-package-lock.json
-node_modules/
-output/
-build/
+__pycache__/
+images/processed/
+.venv/
 .env
