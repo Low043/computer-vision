@@ -1,5 +1,6 @@
 from services.watcher import Watcher
 from services.reader import Reader
+import requests
 import warnings
 import dotenv
 import time
@@ -26,3 +27,5 @@ while True:
     endTime = time.time()
 
     print(f'Texto extraido: {texts} (Tempo: {endTime - startTime:.2f}s)')
+
+    requests.post('http://10.0.0.226:3000', json = { 'weight': texts[0] })

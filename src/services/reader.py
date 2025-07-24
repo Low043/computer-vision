@@ -15,7 +15,7 @@ class Reader(easyocr.Reader):
     def getTextFromFrame(self, frame: np.ndarray, saveFrame: bool = False):
         try:
             # Pré-processamento da imagem
-            croppedImg = frame[220:350, 280:580]
+            croppedImg = frame[220:360, 280:580]
             blurImg = cv2.GaussianBlur(croppedImg, (5, 5), 0)
             grayImg = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
 
@@ -31,7 +31,7 @@ class Reader(easyocr.Reader):
             
             # Filtra os dígitos de todos os caracteres encontrados
             rawText = ''.join([res[1] for res in result])
-            replacedText = rawText.replace('{', '1').replace('/', '1').replace('b', '8')
+            replacedText = rawText.replace('{', '1').replace('(', '1').replace('I', '1').replace('/', '1').replace('u', '0').replace('H', '0').replace('b', '8').replace('Y', '4').replace('y', '4')
             fixedText = re.sub(r'\D', '', replacedText)
 
             return [fixedText, replacedText, rawText]
