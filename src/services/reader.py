@@ -12,26 +12,29 @@ class Reader(easyocr.Reader):
 
         print('Leitor OCR iniciado com sucesso!')
 
-    def getTextFromFrame(self, frame: np.ndarray):
+    def getTextFromFrame(self, frame: np.ndarray, saveFrame: bool = False):
         try:
             # Pré-processamento da imagem
-            croppedImg = frame[230:340, 250:580]
+            croppedImg = frame[220:350, 280:580]
             blurImg = cv2.GaussianBlur(croppedImg, (5, 5), 0)
+            grayImg = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
 
             # Imagem final e extração de texto
-            finalImg = blurImg
+            finalImg = grayImg
             result = self.readtext(finalImg)
 
-            cv2.imwrite(f'{self.saveFolder}/processed.png', finalImg)
+            if saveFrame:
+                cv2.imwrite(f'{self.saveFolder}/processed.png', finalImg)
 
             if not result:
                 return 'Nenhum texto encontrado.'
             
             # Filtra os dígitos de todos os caracteres encontrados
-            fullText = ''.join([res[1] for res in result])
-            filteredText = re.sub(r'\D', '', fullText)
+            rawText = ''.join([res[1] for res in result])
+            replacedText = rawText.replace('{', '1').replace('/', '1').replace('b', '8')
+            fixedText = re.sub(r'\D', '', replacedText)
 
-            return f'{filteredText} - {fullText}'
+            return [fixedText, replacedText, rawText]
         
         except Exception as e:
             return f'Erro ao extrair texto: {e}'

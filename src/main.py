@@ -1,7 +1,8 @@
-from services.ffmpeg import Watcher
-from services.easyocr import Reader
+from services.watcher import Watcher
+from services.reader import Reader
 import warnings
 import dotenv
+import time
 import os
 
 # Ignora aviso do EasyOCR sobre pin_memory da GPU
@@ -18,7 +19,10 @@ watcher = Watcher(VIDEO_URL, saveFolder)
 reader = Reader(saveFolder)
 
 while True:
-    frame = watcher.getCurrentFrame()
-    text = reader.getTextFromFrame(frame)
+    startTime = time.time()
+    frames = watcher.getMultipleFrames(10)
+    stackedFrame = watcher.stackFrames(frames, saveFrame = True)
+    texts = reader.getTextFromFrame(stackedFrame, saveFrame = True)
+    endTime = time.time()
 
-    print(f'Texto extraido: {text}')
+    print(f'Texto extraido: {texts} (Tempo: {endTime - startTime:.2f}s)')
