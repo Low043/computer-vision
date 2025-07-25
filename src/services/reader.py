@@ -19,22 +19,15 @@ class Reader(easyocr.Reader):
             blurImg = cv2.GaussianBlur(croppedImg, (5, 5), 0)
             grayImg = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
 
-            # Imagem final e extração de texto
             finalImg = grayImg
-            result = self.readtext(finalImg)
 
             if saveFrame:
                 cv2.imwrite(f'{self.saveFolder}/processed.png', finalImg)
 
-            if not result:
-                return 'Nenhum texto encontrado.'
-            
-            # Filtra os dígitos de todos os caracteres encontrados
-            rawText = ''.join([res[1] for res in result])
-            replacedText = rawText.replace('{', '1').replace('(', '1').replace('I', '1').replace('/', '1').replace('u', '0').replace('H', '0').replace('b', '8').replace('Y', '4').replace('y', '4')
-            fixedText = re.sub(r'\D', '', replacedText)
+            result = self.readtext(finalImg, allowlist='0123456789')
+            text = ''.join([res[1] for res in result])
 
-            return [fixedText, replacedText, rawText]
+            return text
         
         except Exception as e:
             return f'Erro ao extrair texto: {e}'
