@@ -1,33 +1,36 @@
+"""Declaração da classe Reader"""
 import numpy as np
 import easyocr
 import cv2
 import re
-    
+
 class Reader(easyocr.Reader):
-    def __init__(self, saveFolder: str):
+    """Classe que lê texto de uma imagem"""
+    def __init__(self, save_folder: str):
         print('Iniciando leitor OCR...')
 
         super().__init__(['pt'], gpu = False, verbose = False)
-        self.saveFolder = saveFolder
+        self.save_folder = save_folder
 
         print('Leitor OCR iniciado com sucesso!')
 
-    def getTextFromFrame(self, frame: np.ndarray, saveFrame: bool = False):
+    def get_text_from_frame(self, frame: np.ndarray, save_frame: bool = False):
+        """Recorta a imagem, e extrai o texto usando o easyOCR"""
         try:
             # Pré-processamento da imagem
-            croppedImg = frame[220:360, 280:580]
-            blurImg = cv2.GaussianBlur(croppedImg, (5, 5), 0)
-            grayImg = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
+            cropped_img = frame[100:500, 100:500]
+            blur_img = cv2.GaussianBlur(cropped_img, (5, 5), 0)
+            gray_img = cv2.cvtColor(blur_img, cv2.COLOR_BGR2GRAY)
 
-            finalImg = grayImg
+            final_img = gray_img
 
-            if saveFrame:
-                cv2.imwrite(f'{self.saveFolder}/processed.png', finalImg)
+            if save_frame:
+                cv2.imwrite(f'{self.save_folder}/processed.png', final_img)
 
-            result = self.readtext(finalImg, allowlist='0123456789')
+            result = self.readtext(final_img, allowlist='0123456789')
             text = ''.join([res[1] for res in result])
 
             return text
-        
+
         except Exception as e:
             return f'Erro ao extrair texto: {e}'
