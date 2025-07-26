@@ -2,7 +2,6 @@
 import numpy as np
 import easyocr
 import cv2
-import re
 
 class Reader(easyocr.Reader):
     """Classe que lê texto de uma imagem"""
@@ -15,10 +14,9 @@ class Reader(easyocr.Reader):
         print('Leitor OCR iniciado com sucesso!')
 
     def get_text_from_frame(self, frame: np.ndarray, save_frame: bool = False):
-        """Recorta a imagem, e extrai o texto usando o easyOCR"""
+        """Pré-processa a imagem, e extrai o texto usando o easyOCR"""
         try:
-            # Pré-processamento da imagem
-            cropped_img = frame[100:500, 100:500]
+            cropped_img = frame[220:360, 280:580]
             blur_img = cv2.GaussianBlur(cropped_img, (5, 5), 0)
             gray_img = cv2.cvtColor(blur_img, cv2.COLOR_BGR2GRAY)
 
