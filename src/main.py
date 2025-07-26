@@ -10,11 +10,10 @@ from services.reader import Reader
 # Ignora aviso do EasyOCR sobre pin_memory da GPU
 warnings.filterwarnings('ignore', category = UserWarning, message = '.*pin_memory.*')
 
-# Pega a URL do vídeo do arquivo .env
 VIDEO_URL = dotenv.get_key('.env', 'VIDEO_URL')
+SAVEFOLDER = 'src/images'
 
 # Cria a pasta de imagens se não existir
-SAVEFOLDER = 'src/images'
 os.makedirs(SAVEFOLDER, exist_ok = True)
 
 watcher = Watcher(VIDEO_URL, SAVEFOLDER)
@@ -29,4 +28,4 @@ while True:
 
     print(f'Texto extraido: {TEXTS} (Tempo: {endTime - startTime:.2f}s)')
 
-    # requests.post('http://10.0.0.226:3000', json = { 'weight': TEXTS[0] }, timeout= 300)
+    # requests.post('', json = {}, timeout= 300)

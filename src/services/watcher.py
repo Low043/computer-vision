@@ -1,17 +1,21 @@
 """Declaração da classe Watcher"""
+import os
 import numpy as np
 import cv2
 
 class Watcher:
-    """Classe que extrai e formata frames da stream"""
+    """Classe que extrai e empilha frames da stream"""
     def __init__(self, stream_url: str, save_folder: str):
         self.stream_url = stream_url
-        self.save_folder = save_folder
+        self.save_folder = os.path.abspath(save_folder)
 
     def get_multiple_frames(self, num_frames: int) -> list[np.ndarray]:
         """Extrai frames da stream"""
         frames = []
         cap = cv2.VideoCapture(self.stream_url)
+
+        if not cap.isOpened():
+            raise Exception('Erro ao abrir fonte de vídeo.')
 
         for _ in range(num_frames):
             ret, frame = cap.read()
