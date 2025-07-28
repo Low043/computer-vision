@@ -1,37 +1,59 @@
 """Monitoramento da balança"""
-import time
-import os
-import warnings
-import base64
-import requests
-import dotenv
-import cv2
 from services.watcher import Watcher
 from services.reader import Reader
+import time, os, base64, dotenv
+import requests
+import warnings
+import cv2
 
 # Ignora aviso do EasyOCR sobre pin_memory da GPU
 warnings.filterwarnings('ignore', category = UserWarning, message = '.*pin_memory.*')
 
-STREAM_URL = dotenv.get_key('.env', 'STREAM_URL')
-SAVEFOLDER = 'src/images'
+class Monitoring:
+    """Classe que monitora a balança e envia os dados para a API do WhatsApp"""
+    def __init__(self, stream_url: str, api_url: str, save_folder: str):
+        self.watcher = Watcher(stream_url, save_folder)
+        self.reader = Reader(save_folder)
+        self.api_url = api_url
 
-# Cria a pasta de imagens se não existir
-os.makedirs(SAVEFOLDER, exist_ok = True)
+    def run(self):
+        """Inicia o monitoramento da balança"""
+        while True:
+            start_time = time.time()
 
-watcher = Watcher(STREAM_URL, SAVEFOLDER)
-reader = Reader(SAVEFOLDER)
+            frame = self.watcher.get_frame()
+            readout = self.reader.get_text_from_frame(frame, save_frame = True)
+            image64 = self.image_to_base64(frame)
 
-while True:
-    startTime = time.time()
-    frame = watcher.get_frame()
-    READOUT = reader.get_text_from_frame(frame, save_frame = True)
+            end_time = time.time()
 
-    ret, buffer = cv2.imencode('.jpg', frame)
-    imgBase64 = base64.b64encode(buffer).decode('utf-8')
+            print(f'Texto extraído: {readout} (Tempo: {end_time - start_time:.2f}s)')
 
-    endTime = time.time()
+            if readout.isnumeric() and 800 < int(readout) < 5000:
+                self.send_message(image64, readout)
 
-    print(f'Texto extraido: {READOUT} (Tempo: {endTime - startTime:.2f}s)')
+    def send_message(self, image64, weight):
+        """Envia a imagem e o peso para a API do WhatsApp"""
+        try:
+            requests.post(self.api_url, json = { 'image': image64, 'weight': weight }, timeout = 300)
+        except requests.RequestException as e:
+            print(f'Erro ao enviar mensagem: {e}')
 
-    if  READOUT.isnumeric() and 800 < int(READOUT) < 5000:
-        requests.post('http://localhost:3000', json = { 'image': imgBase64, 'weight': READOUT }, timeout = 300)
+    def image_to_base64(self, image):
+        """Converte uma imagem OpenCV para base64"""
+        _, buffer = cv2.imencode('.jpg', image)
+        return base64.b64encode(buffer).decode('utf-8')
+
+if __name__ == '__main__':
+    dotenv.load_dotenv()
+
+    STREAM_URL = os.getenv('STREAM_URL')
+    API_URL = os.getenv('API_URL')
+    SAVEFOLDER = 'src/images'
+
+    # Cria a pasta de imagens se não existir
+    os.makedirs(SAVEFOLDER, exist_ok = True)
+
+    # Inicia o monitoramento
+    monitoring = Monitoring(STREAM_URL, API_URL, SAVEFOLDER)
+    monitoring.run()
