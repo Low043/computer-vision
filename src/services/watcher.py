@@ -10,7 +10,7 @@ class Watcher:
         self.save_folder = os.path.abspath(save_folder)
 
     def get_multiple_frames(self, num_frames: int) -> list[np.ndarray]:
-        """Extrai frames da stream"""
+        """Extrai multiplos frames da stream de uma vez"""
         frames = []
         cap = cv2.VideoCapture(self.stream_url)
 
@@ -26,6 +26,19 @@ class Watcher:
         cap.release()
 
         return frames
+
+    def get_frame(self) -> list[np.ndarray]:
+        """Extrai frames da stream"""
+        cap = cv2.VideoCapture(self.stream_url)
+
+        if not cap.isOpened():
+            raise Exception('Erro ao abrir fonte de vídeo.')
+
+        ret, frame = cap.read()
+
+        cap.release()
+
+        return frame
 
     def stack_frames(self, frames: list[np.ndarray], save_frame: bool = False):
         """Empilha os frames em uma imagem"""

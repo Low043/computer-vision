@@ -22,7 +22,6 @@ class Reader(easyocr.Reader):
             gray_img = cv2.cvtColor(blur_img, cv2.COLOR_BGR2GRAY)
             threshold_img = cv2.adaptiveThreshold(gray_img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 19, 3)
 
-
             final_img = threshold_img
 
             if save_frame:
@@ -31,7 +30,7 @@ class Reader(easyocr.Reader):
             result = self.readtext(final_img, allowlist='0123456789')
             text = ''.join([res[1] for res in result])
 
-            return text  
+            return text
 
         except Exception as e:
             return f'Erro ao extrair texto: {e}'
