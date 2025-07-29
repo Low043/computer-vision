@@ -45,8 +45,10 @@ class Reader(easyocr.Reader):
         if len(text) > 3:
             if text[0] == '8':
                 text = '1' + text[1:]
-            if text[:2] == '28':
-                text = '20' + text[2:]
+            if text[-2] == '8':
+                text = text[:-2] + '0' + text[-1]
+            if text[1] == '8':
+                text = text[0] + '0' + text[2:]
             
             text = text.replace('7', '1').replace('4', '1')
 
