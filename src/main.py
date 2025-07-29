@@ -21,15 +21,19 @@ class Monitoring:
         while True:
             start_time = time.time()
 
-            frame = self.watcher.get_frame()
-            readout = self.reader.get_text_from_frame(frame, save_frame = True)
-            image64 = self.image_to_base64(frame)
+            try:
+                frame = self.watcher.get_frame(save_frame = True)
+                readout, original = self.reader.get_text_from_frame(frame, save_frame = True)
+                image64 = self.image_to_base64(frame)
+            except Exception as e:
+                print(f'Erro ao processar o frame: {e}')
+                continue
 
             end_time = time.time()
 
-            print(f'Texto extraído: {readout} (Tempo: {end_time - start_time:.2f}s)')
+            print(f'Texto extraido: {readout} - {original} (Tempo: {end_time - start_time:.2f}s)')
 
-            if readout.isnumeric() and 800 < int(readout) < 5000:
+            if readout.isnumeric() and 3000 < int(readout) < 4000:
                 self.send_message(image64, readout)
 
     def send_message(self, image64, weight):

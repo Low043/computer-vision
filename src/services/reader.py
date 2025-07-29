@@ -2,7 +2,6 @@
 import numpy as np
 import easyocr
 import cv2
-import re
 
 class Reader(easyocr.Reader):
     """Classe que lê texto de uma imagem"""
@@ -17,26 +16,38 @@ class Reader(easyocr.Reader):
     def get_text_from_frame(self, frame: np.ndarray, save_frame: bool = False):
         """Pré-processa a imagem, e extrai o texto usando o easyOCR"""
         try:
-            cropped_img = frame[220:360, 280:580]
-            blur_img = cv2.GaussianBlur(cropped_img, (5, 5), 0)
-            gray_img = cv2.cvtColor(blur_img, cv2.COLOR_BGR2GRAY)
-            threshold_img = cv2.adaptiveThreshold(gray_img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 19, 3)
-
-            final_img = threshold_img
+            final_img = self.preprocessing_img(frame)
 
             if save_frame:
                 cv2.imwrite(f'{self.save_folder}/processed.png', final_img)
 
             result = self.readtext(final_img, allowlist='0123456789')
-            text = ''.join([res[1] for res in result])
 
-            return text
+            return self.accurate_text(result)
 
         except Exception as e:
             return f'Erro ao extrair texto: {e}'
 
-    def to_threshold(self, img: np.ndarray):
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        fimg = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 1)
-        cv2.imwrite('src/images/thresholded.png', fimg)
+    def preprocessing_img(self, image: np.ndarray):
+        """Pré-processa a imagem para melhorar a leitura OCR"""
+        cropped_img = image[220:355, 340:565]
+        blur_img = cv2.GaussianBlur(cropped_img, (5, 5), 0)
+        gray_img = cv2.cvtColor(blur_img, cv2.COLOR_BGR2GRAY)
+        threshold_img = cv2.adaptiveThreshold(gray_img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 37, 7)
 
+        return threshold_img
+
+    def accurate_text(self, read_result: list[str]):
+        """Processa o resultado do OCR em um texto mais preciso"""
+        original_text = ''.join([res[1] for res in read_result])
+        text = original_text
+
+        if len(text) > 3:
+            if text[0] == '8':
+                text = '1' + text[1:]
+            if text[:2] == '28':
+                text = '20' + text[2:]
+            
+            text = text.replace('7', '1').replace('4', '1')
+
+        return [text, original_text]
