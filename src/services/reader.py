@@ -43,13 +43,13 @@ class Reader(easyocr.Reader):
         text = original_text
 
         if len(text) > 3:
-            if text[0] == '8':
+            if text[:2] == '88' or text[:2] == '44' or text[:2] == '77':
+                text = '11' + text[2:]
+            if text[0] == '8' or text[0] == '4' or text[0] == '7':
                 text = '1' + text[1:]
-            if text[-2] == '8':
-                text = text[:-2] + '0' + text[-1]
+            if text[1] == '4':
+                text = text[0] + '1' + text[2:]
             if text[1] == '8':
                 text = text[0] + '0' + text[2:]
-            
-            text = text.replace('7', '1').replace('4', '1')
 
         return [text, original_text]
