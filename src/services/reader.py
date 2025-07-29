@@ -30,7 +30,7 @@ class Reader(easyocr.Reader):
 
     def preprocessing_img(self, image: np.ndarray):
         """Pré-processa a imagem para melhorar a leitura OCR"""
-        cropped_img = image[220:355, 340:565]
+        cropped_img = image[220:350, 340:565]
         blur_img = cv2.GaussianBlur(cropped_img, (5, 5), 0)
         gray_img = cv2.cvtColor(blur_img, cv2.COLOR_BGR2GRAY)
         threshold_img = cv2.adaptiveThreshold(gray_img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 37, 7)
