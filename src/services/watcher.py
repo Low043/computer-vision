@@ -13,7 +13,7 @@ class Watcher:
         cap = cv2.VideoCapture(self.stream_url)
 
         if not cap.isOpened():
-            raise Exception('Erro ao abrir fonte de video.')
+            raise CamOfflineException('Erro ao abrir fonte de video')
 
         _, frame = cap.read()
 
@@ -23,3 +23,7 @@ class Watcher:
             cv2.imwrite(f'{self.save_folder}/original.png', frame)
 
         return frame
+
+class CamOfflineException(Exception):
+    """Exceção para indicar que a câmera está offline"""
+    pass

@@ -1,5 +1,5 @@
 """Monitoramento da balança"""
-from services.watcher import Watcher
+from services.watcher import Watcher, CamOfflineException
 from services.reader import Reader
 import time, os, base64, dotenv
 import requests
@@ -15,20 +15,27 @@ class Monitoring:
         self.watcher = Watcher(stream_url, save_folder)
         self.reader = Reader(save_folder)
         self.api_url = api_url
+        self.cam_online = True
 
     def run(self):
         """Inicia o monitoramento da balança"""
         while True:
-
             start_time = time.time()
             try:
                 frame = self.watcher.get_frame(save_frame = True)
                 readout, original = self.reader.get_text_from_frame(frame, save_frame = True)
                 image64 = self.image_to_base64(frame)
+            except CamOfflineException as e:
+                if self.cam_online:
+                    self.change_camera_state(online = False)
+                continue
             except Exception as e:
                 print(f'Erro ao processar o frame: {e}')
                 continue
             end_time = time.time()
+
+            if not self.cam_online:
+                self.change_camera_state(online = True)
 
             print(f'Texto extraido: {readout} - {original} (Tempo: {end_time - start_time:.2f}s)')
 
@@ -42,10 +49,28 @@ class Monitoring:
         except requests.RequestException as e:
             print(f'Erro ao enviar mensagem: {e}')
 
+    def send_warning(self, message: str):
+        """Envia um alerta para a API do WhatsApp"""
+        try:
+            requests.post(f'{self.api_url}/warning', json = { 'message': message }, timeout = 300)
+        except requests.RequestException as e:
+            print(f'Erro ao enviar aviso: {e}')
+
     def image_to_base64(self, image):
         """Converte uma imagem OpenCV para base64"""
         _, buffer = cv2.imencode('.jpg', image)
         return base64.b64encode(buffer).decode('utf-8')
+    
+    def change_camera_state(self, online: bool):
+        """Altera o estado da câmera (online/offline)"""
+        self.cam_online = online
+        status = 'online' if online else 'offline'
+        print(f'Camera {status}')
+
+        if online:
+            self.send_warning('✅ Aviso do sistema: Câmera online')
+        else:
+            self.send_warning('🚫 Alerta do sistema: Câmera offline')
 
 if __name__ == '__main__':
     dotenv.load_dotenv()
