@@ -68,7 +68,7 @@ class Monitoring:
         print(f'Camera {status}')
 
         if online:
-            self.send_warning('✅ Aviso do sistema: Câmera online')
+            self.send_warning('✅ Alerta do sistema: Câmera online')
         else:
             self.send_warning('🚫 Alerta do sistema: Câmera offline')
 
