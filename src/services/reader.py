@@ -26,12 +26,10 @@ class Reader(easyocr.Reader):
 
             processed_img = self.img_processor.execute(actions, frame)
 
-            final_img = processed_img
-
             if save_frame:
-                cv2.imwrite(f'{self.save_folder}/processed.png', final_img)
+                cv2.imwrite(f'{self.save_folder}/processed.png', processed_img)
 
-            result = self.readtext(final_img, allowlist='0123456789')
+            result = self.readtext(processed_img, allowlist='0123456789')
 
             return self.accurate_text(result)
 
