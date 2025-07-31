@@ -20,8 +20,8 @@ class Reader(easyocr.Reader):
         try:
             actions = {
                 'crop': [220, 350, 340, 565],
-                'rgb_to_gray': True,
-                'threshold': True
+                'rgb_to_gray': None,
+                'threshold': None
             }
 
             processed_img = self.img_processor.execute(actions, frame)
@@ -32,9 +32,25 @@ class Reader(easyocr.Reader):
                 cv2.imwrite(f'{self.save_folder}/processed.png', final_img)
 
             result = self.readtext(final_img, allowlist='0123456789')
-            text = ''.join([res[1] for res in result])
 
-            return text
+            return self.accurate_text(result)
 
         except Exception as e:
             return f'Erro ao extrair texto: {e}'
+
+    def accurate_text(self, read_result: list[str]):
+        """Processa o resultado do OCR em um texto mais preciso"""
+        original_text = ''.join([res[1] for res in read_result])
+        text = original_text
+
+        if len(text) > 3:
+            if text[:2] == '88' or text[:2] == '44' or text[:2] == '77':
+                text = '11' + text[2:]
+            if text[0] == '8' or text[0] == '4' or text[0] == '7':
+                text = '1' + text[1:]
+            if text[1] == '4':
+                text = text[0] + '1' + text[2:]
+            if text[1] == '8':
+                text = text[0] + '0' + text[2:]
+
+        return [text, original_text]

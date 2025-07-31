@@ -23,16 +23,18 @@ class ImgProcessing:
 
     def execute(self, actions: dict, img: np.ndarray) -> np.ndarray:
         """Executa as ações de processamento de imagem todas de uma vez"""
-        if actions['crop'] is not None:
-            processed_img = self.crop(actions['crop'], img)
-            img = processed_img
+        for action, params in actions.items():
+            action_function = getattr(self, action)
 
-        if actions['rgb_to_gray'] is not None:
-            processed_img = self.rgb_to_gray(img)
-            img = processed_img
+            if not callable(action_function):
+                raise ValueError(f'Ação {action} não é uma função válida.')
 
-        if actions['threshold'] is not None:
-            processed_img = self.threshold(img)
+            if params is None:
+                processed_img = action_function(img)
+                img = processed_img
+                continue
+
+            processed_img = action_function(img, params)
             img = processed_img
 
         return img
