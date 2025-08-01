@@ -29,7 +29,7 @@ class Reader(easyocr.Reader):
             if save_frame:
                 cv2.imwrite(f'{self.save_folder}/processed.png', processed_img)
 
-            result = self.readtext(processed_img, allowlist='0123456789')
+            result = self.readtext(processed_img, allowlist='0123456789', workers=1)
 
             return self.accurate_text(result)
 
