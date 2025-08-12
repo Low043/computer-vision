@@ -5,6 +5,7 @@ import time, os, base64, dotenv
 import requests
 import warnings
 import cv2
+from datetime import datetime
 
 # Ignora aviso do EasyOCR sobre pin_memory da GPU
 warnings.filterwarnings('ignore', category = UserWarning, message = '.*pin_memory.*')
@@ -28,6 +29,7 @@ class Monitoring:
             except CamOfflineException as e:
                 if self.cam_online:
                     self.change_camera_state(online = False)
+                    print(f'Camera offline: {e}')
                 continue
             except Exception as e:
                 print(f'Erro ao processar o frame: {e}')
@@ -37,15 +39,16 @@ class Monitoring:
             if not self.cam_online:
                 self.change_camera_state(online = True)
 
-            print(f'Texto extraido: {readout} - {original} (Tempo: {end_time - start_time:.2f}s)')
+            print(f'Texto extraido: {readout} - {original} (Tempo: {end_time - start_time:.2f}s) (Timestamp: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')})')
 
             if readout.isnumeric() and 2900 < int(readout) < 4000:
                 self.send_message(image64, readout)
 
     def send_message(self, image64, weight):
         """Envia a imagem e o peso para a API do WhatsApp"""
+        message = f'⚠ALERTA DE EXCESSO DE PESO NO GUINCHO\n🕒Horário: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}\n🏗Peso detectado: {weight}kg\n🔴Situação: Valor excede o limite máximo de 3.000 kg.\n📍Local: Área de Carga - Subsolo 1\n👥Notificação enviada ao corpo técnico e supervisão\n❕Confirme o peso na imagem em anexo.\n*teste*'
         try:
-            requests.post(self.api_url, json = { 'image': image64, 'weight': weight }, timeout = 300)
+            requests.post(self.api_url, json = { 'image': image64, 'weight': weight, 'message': message }, timeout = 300)
         except requests.RequestException as e:
             print(f'Erro ao enviar mensagem: {e}')
 
