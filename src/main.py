@@ -26,6 +26,7 @@ class Monitoring:
                 frame = self.watcher.get_frame(save_frame = True)
                 readout, original = self.reader.get_text_from_frame(frame, save_frame = True)
                 image64 = self.image_to_base64(frame)
+                end_time = time.time()
             except CamOfflineException as e:
                 if self.cam_online:
                     self.change_camera_state(online = False)
@@ -34,7 +35,6 @@ class Monitoring:
             except Exception as e:
                 print(f'Erro ao processar o frame: {e}')
                 continue
-            end_time = time.time()
 
             if not self.cam_online:
                 self.change_camera_state(online = True)
@@ -47,7 +47,7 @@ class Monitoring:
 
     def send_message(self, image64, weight):
         """Envia a imagem e o peso para a API do WhatsApp"""
-        message = f'⚠ALERTA DE EXCESSO DE PESO NO GUINCHO\n🕒Horário: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}\n🏗Peso detectado: {weight}kg\n🔴Situação: Valor excede o limite máximo de 3.000 kg.\n📍Local: Área de Carga - Subsolo 1\n👥Notificação enviada ao corpo técnico e supervisão\n❕Confirme o peso na imagem em anexo.\n*teste*'
+        message = f'⚠ALERTA DE EXCESSO DE PESO NO GUINCHO\n🕒Horário: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}\n🏗Peso detectado: {weight}kg\n🔴Situação: Valor excede o limite máximo de 3.000 kg.\n📍Local: Área de Carga - Subsolo 1\n👥Notificação enviada ao corpo técnico e supervisão\n❕Confirme o peso na imagem em anexo.'
         try:
             requests.post(self.api_url, json = { 'image': image64, 'weight': weight, 'message': message }, timeout = 300)
         except requests.RequestException as e:
