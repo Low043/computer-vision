@@ -2,10 +2,10 @@
 from services.watcher import Watcher, CamOfflineException
 from services.reader import Reader
 import time, os, base64, dotenv
+from datetime import datetime
 import requests
 import warnings
 import cv2
-from datetime import datetime
 
 # Ignora aviso do EasyOCR sobre pin_memory da GPU
 warnings.filterwarnings('ignore', category = UserWarning, message = '.*pin_memory.*')
@@ -72,9 +72,11 @@ class Monitoring:
         print(f'Camera {status}')
 
         if online:
-            self.send_warning('✅ Alerta do sistema: Câmera online')
+            print(f'✅ Alerta do sistema: Câmera online (Timestamp: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')})')
+            # self.send_warning('✅ Alerta do sistema: Câmera online')
         else:
-            self.send_warning('🚫 Alerta do sistema: Câmera offline')
+            print(f'🚫 Alerta do sistema: Câmera offline (Timestamp: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')})')
+            # self.send_warning('🚫 Alerta do sistema: Câmera offline')
 
 if __name__ == '__main__':
     dotenv.load_dotenv()
