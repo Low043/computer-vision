@@ -32,8 +32,9 @@ class Monitoring:
 
             print(f'Texto extraido: {readout} - {original} (Tempo: {end_time - start_time:.2f}s)')
 
-            if readout.isnumeric() and 2900 < int(readout) < 4000:
+            if readout.isnumeric() and 3000 <= int(readout) < 4000:
                 self.send_message(image64, readout)
+                print(f'Mensagem enviada, peso: {readout}')
 
     def send_message(self, image64, weight):
         """Envia a imagem e o peso para a API do WhatsApp"""

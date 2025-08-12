@@ -46,8 +46,6 @@ class Reader(easyocr.Reader):
                 text = '11' + text[2:]
             if text[0] == '8' or text[0] == '4' or text[0] == '7':
                 text = '1' + text[1:]
-            if text[1] == '4':
-                text = text[0] + '1' + text[2:]
             if text[1] == '8':
                 text = text[0] + '0' + text[2:]
 
