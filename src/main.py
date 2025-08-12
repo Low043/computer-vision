@@ -47,7 +47,7 @@ class Monitoring:
 
     def send_message(self, image64, weight):
         """Envia a imagem e o peso para a API do WhatsApp"""
-        message = f'⚠ALERTA DE EXCESSO DE PESO NO GUINCHO\n🕒Horário: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}\n🏗Peso detectado: {weight}kg\n🔴Situação: Valor lido excede o limite de 3.000 kg.\n📍Local: Área de Carga - Subsolo 1\n👥Notificação enviada ao corpo técnico e supervisão\n❕Confirme o peso na imagem em anexo.'
+        message = f'⚠ALERTA DE EXCESSO DE PESO NO GUINCHO\n🕒Horário: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}\n🏗Peso detectado: {weight}kg\n🔴Situação: Valor lido excede o limite de 3.000 kg.\n📍Local: Área de Carga - Subsolo Extração 2 - Acesso B1\n👥Notificação enviada ao corpo técnico e supervisão\n❕Confirme o peso na imagem em anexo.'
         try:
             requests.post(self.api_url, json = { 'image': image64, 'weight': weight, 'message': message }, timeout = 300)
         except requests.RequestException as e:
