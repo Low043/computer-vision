@@ -1,15 +1,13 @@
 from inference import get_model
+from cv2.typing import MatLike
 import supervision as sv
 import json
-import cv2
 
 class Reader:
     def __init__(self, model_id: str):
         self.model = get_model(model_id)
 
-    def read_image(self, image_path: str):
-        image = cv2.imread(image_path)
-
+    def read_image(self, image: MatLike):
         results = self.model.infer(image)[0]
         return results
     
@@ -19,8 +17,7 @@ class Reader:
         pretty_json = json.dumps(results_dict, indent=4)
         return pretty_json
     
-    def visualize(self, image_path: str, results):
-        image = cv2.imread(image_path)
+    def visualize(self, image: MatLike, results):
         detections = sv.Detections.from_inference(results)
 
         # Caixas e labels

@@ -10,6 +10,7 @@ pip install -r requirements.txt
 
 ```bash
 # .env
+STREAM_URL = "rtsp://admin:SEG101085$$a@10.0.0.157:554/cam/realmonitor?channel=1&subtype=0"
 API_KEY = "<API_KEY>"
 
 PALIGEMMA_ENABLED = False
