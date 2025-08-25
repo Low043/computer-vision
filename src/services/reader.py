@@ -6,7 +6,7 @@ class Reader:
     def __init__(self):
         self.model = YOLO('balancaReader.pt')
 
-    def get_frame_text(self, frame, save_image=False):
+    def get_frame_text(self, frame):
         """Extrai o texto da imagem usando o modelo YOLO e formata o resultado"""
         result = self.model.predict(frame, iou=0, verbose=False)[0]
 

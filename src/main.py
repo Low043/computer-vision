@@ -30,12 +30,12 @@ class Monitoring:
         while True:
             time.sleep(self.delay)
             frame = self.watcher.get_frame()
-            [result, image] = self.reader.get_frame_text(frame, save_image=True)
+            [result, image] = self.reader.get_frame_text(frame)
 
             if 3000 <= int(result) < 4000:
                 image64 = self.watcher.ndarray_to_base64(image)
                 self.send_message(image64, result)
-                print(f'Peso detectado: {result}kg - Mensagem enviada.')    
+                print(f'Peso detectado: {result}kg - Mensagem enviada.')
 
             self.watcher.save_frame(image, 'result.jpg')
 
