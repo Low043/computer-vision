@@ -13,15 +13,15 @@ pip install -r requirements.txt
 
 A seguir uma documentação, gerada por IA, para a configuração do ambiente
 
-## Guia de Configuração: Acelerando o EasyOCR com GPU NVIDIA (CUDA)
+## Guia de Configuração: Acelerando o YOLO com GPU NVIDIA (CUDA)
 
-Este documento detalha o processo completo para configurar um ambiente de desenvolvimento Python para utilizar uma GPU NVIDIA (especificamente uma GeForce GTX 1650) para acelerar tarefas do EasyOCR, resolvendo o aviso "Neither CUDA nor MPS are available".
+Este documento detalha o processo completo para configurar um ambiente de desenvolvimento Python para utilizar uma GPU NVIDIA (especificamente uma GeForce GTX 1650) para acelerar tarefas do YOLO, resolvendo o aviso "Neither CUDA nor MPS are available".
 ### 1. Objetivo
 
-O objetivo principal era habilitar o suporte a GPU (via CUDA) para a biblioteca EasyOCR em um sistema com uma placa de vídeo NVIDIA GeForce GTX 1650, a fim de obter uma melhoria significativa na velocidade de processamento.
+O objetivo principal era habilitar o suporte a GPU (via CUDA) para a biblioteca YOLO em um sistema com uma placa de vídeo NVIDIA GeForce GTX 1650, a fim de obter uma melhoria significativa na velocidade de processamento.
 ### 2. Diagnóstico do Problema Inicial
 
-Ao executar o EasyOCR, o seguinte aviso era exibido, indicando que a biblioteca estava recorrendo ao uso da CPU por não encontrar uma instalação compatível do CUDA:
+Ao executar o YOLO, o seguinte aviso era exibido, indicando que a biblioteca estava recorrendo ao uso da CPU por não encontrar uma instalação compatível do CUDA:
 ````bash
     Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
     C:\...\UserWarning: 'pin_memory' argument is set as true but no accelerator is found...
@@ -93,4 +93,4 @@ Para confirmar que todo o processo foi bem-sucedido, um script Python foi execut
 ````
 ### 5. Conclusão
 
-A configuração foi concluída com sucesso. O ambiente Python agora está corretamente configurado para utilizar a GPU NVIDIA, eliminando os avisos iniciais e permitindo que o EasyOCR opere com performance acelerada.
+A configuração foi concluída com sucesso. O ambiente Python agora está corretamente configurado para utilizar a GPU NVIDIA, eliminando os avisos iniciais e permitindo que o YOLO opere com performance acelerada.
