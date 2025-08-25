@@ -1,29 +1,38 @@
 """Declaração da classe Watcher"""
-import numpy as np
+from threading import Thread
+import base64
 import cv2
 
 class Watcher:
-    """Classe que extrai e empilha frames da stream"""
-    def __init__(self, stream_url: str, save_folder: str):
-        self.stream_url = stream_url
-        self.save_folder = save_folder
+    """Classe responsável por capturar frames da stream de vídeo em uma thread separada"""
+    def __init__(self, stream_url):
+        self.stream = cv2.VideoCapture(stream_url)
+        self.ok, self.frame = self.stream.read()
+        self.stopped = False
 
-    def get_frame(self, save_frame: bool = False) -> list[np.ndarray]:
-        """Extrai frames da stream"""
-        cap = cv2.VideoCapture(self.stream_url)
+    def start(self):
+        """Inicia a execução da thread com a função update"""
+        Thread(target=self.update, args=()).start()
+        return self
 
-        if not cap.isOpened():
-            raise CamOfflineException('Erro ao abrir fonte de video')
+    def stop(self):
+        """Para a execução da thread"""
+        self.stopped = True
 
-        _, frame = cap.read()
+    def get_frame(self):
+        """Retorna o frame mais recente capturado do buffer"""
+        return self.frame
 
-        cap.release()
+    def update(self):
+        """Lê continuamente os frames do buffer para atualizá-lo"""
+        while not self.stopped:
+            self.ok, self.frame = self.stream.read()
 
-        if save_frame:
-            cv2.imwrite(f'{self.save_folder}/original.png', frame)
+    def ndarray_to_base64(self, image):
+        """Converte uma imagem em formato ndarray para base64"""
+        _, buffer = cv2.imencode('.jpg', image)
+        return base64.b64encode(buffer).decode('utf-8')
 
-        return frame
-
-class CamOfflineException(Exception):
-    """Exceção para indicar que a câmera está offline"""
-    pass
+    def save_frame(self, frame, filename):
+        """Salva o frame em um arquivo"""
+        cv2.imwrite(filename, frame)
