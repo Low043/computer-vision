@@ -1,6 +1,7 @@
 __pycache__/
 images/
 .venv/
+logs/
 .env
 *.png
 *.jpg
