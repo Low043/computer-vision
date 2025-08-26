@@ -30,14 +30,14 @@ class Monitoring:
         while True:
             time.sleep(self.delay)
             start_time = time.time()
-            
+
             frame = self.watcher.get_frame()
             [result, image] = self.reader.get_frame_text(frame)
 
             end_time = time.time()
             processing_time = end_time - start_time
 
-            print(f'Texto extraido: {result} (Processing Time: {processing_time:.2f}s) (Timestamp: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')})')
+            print(f'Texto extraido: {result} (Processing Time: {processing_time:.2f}s) (Timestamp: {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")})')
 
             try:
                 if 3000 <= int(result) < 4000:
