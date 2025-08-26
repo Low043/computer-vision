@@ -17,6 +17,6 @@ class Reader:
             extracted_values.append([text_value, x1])
 
         ordered_values = sorted(extracted_values, key=lambda x: x[1])
-        final_result = ''.join([value[0] for value in ordered_values])
+        final_result = ''.join([value[0] for value in ordered_values]).replace('.','')
 
         return [final_result, result.plot()]
