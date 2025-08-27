@@ -75,12 +75,20 @@ class Monitoring:
     def send_message(self, image, weight, timestamp):
         """Envia a imagem e o peso para a API do WhatsApp"""
         image64 = self.watcher.ndarray_to_base64(image)
-        message = f'⚠ALERTA DE EXCESSO DE PESO NO GUINCHO\n🕒Horário: {timestamp}\n🏗Peso detectado: {weight}kg\n🔴Situação: Valor lido excede o limite de {self.weight_trigger}kg.\n📍Local: Área de Carga - Subsolo Extração 2 - Acesso B1\n👥Notificação enviada ao corpo técnico e supervisão\n❕Confirme o peso na imagem em anexo.'
+        message = self.__message_text(timestamp, weight)
         try:
             requests.post(self.api_url, json = { 'image': image64, 'weight': weight, 'message': message, 'pid': self.process_id }, timeout = 300)
             self.last_message_time = time.time()
         except requests.RequestException as e:
             print(f'Erro ao enviar mensagem: {e}')
+
+    def __message_text(self, timestamp, detected_weight):
+        return f'''⚠ POSSÍVEL EXCESSO DE PESO NO GUINCHO
+🔎 Confirme o peso na imagem em anexo
+🕒 Horário: {timestamp}
+🔴 Situação: Valor pode exceder o limite de {self.weight_trigger}kg
+📍 Local: Área de Carga - *Elevador Principal* - Extração 2 - Acesso B1
+👥 Notificação enviada a Central de monitoramento, Corpo técnico e Supervisores'''
 
 if __name__ == "__main__":
     monitoring = Monitoring(STREAM_URL, API_URL)
