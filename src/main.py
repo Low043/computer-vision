@@ -23,6 +23,9 @@ class Monitoring:
         self.loop_delay = 1
         self.message_delay = 3
 
+        self.save_result_frame = True
+        self.save_overlap_frames = True
+
         self.process_id = os.getpid()
         self.api_url = api_url
 
@@ -41,7 +44,13 @@ class Monitoring:
             [result, image] = self.reader.get_frame_text(frame)
 
             self.check_and_send_message(result, image, start_time)
-            self.watcher.save_frame(image, 'result.jpg')
+
+            if self.save_result_frame:
+                self.watcher.save_frame(image, 'result.jpg')
+            
+            if self.save_overlap_frames:
+                self.watcher.save_frame(self.reader.last_overlap_frame, 'overlap.jpg')
+                self.reader.last_overlap_frame = None
 
             time.sleep(self.loop_delay)
 

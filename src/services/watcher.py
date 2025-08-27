@@ -35,4 +35,5 @@ class Watcher:
 
     def save_frame(self, frame, filename):
         """Salva o frame em um arquivo"""
-        cv2.imwrite(filename, frame)
+        if frame is not None:
+            cv2.imwrite(filename, frame)
