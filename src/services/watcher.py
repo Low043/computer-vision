@@ -7,7 +7,7 @@ class Watcher:
     """Classe responsável por capturar frames da stream de vídeo em uma thread separada"""
     def __init__(self, stream_url):
         self.stream = cv2.VideoCapture(stream_url)
-        self.ok, self.frame = self.stream.read()
+        _, self.frame = self.stream.read()
         self.stopped = False
 
     def start(self):
@@ -26,7 +26,9 @@ class Watcher:
     def update(self):
         """Lê continuamente os frames do buffer para atualizá-lo"""
         while not self.stopped:
-            self.ok, self.frame = self.stream.read()
+            ok, frame = self.stream.read()
+            if ok:
+                self.frame = frame
 
     def ndarray_to_base64(self, image):
         """Converte uma imagem em formato ndarray para base64"""
