@@ -26,13 +26,19 @@ class Monitoring:
         self.save_result_frame = True
         self.save_overlap_frames = True
 
+        self.max_weight_detected = 0
+        self.max_weight_detected_image = None
+
         self.process_id = os.getpid()
         self.api_url = api_url
 
     def start(self):
         """Inicia o monitoramento da stream"""
         try:
+            self.send_message(self.__message_start())
             self.__main_loop()
+        except KeyboardInterrupt:
+            self.send_message(self.__message_stop(), self.max_weight_detected_image)
         finally:
             self.watcher.stop()
 
@@ -59,9 +65,13 @@ class Monitoring:
         timestamp = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
         try:
             weight_detected = int(result)
+            if weight_detected > self.max_weight_detected:
+                self.max_weight_detected = weight_detected
+                self.max_weight_detected_image = image
+
             if self.weight_trigger <= weight_detected <= self.valid_max_weight:
                 if start_time - self.last_message_time >= self.message_delay:
-                    self.send_message(image, result, timestamp)
+                    self.send_weight_alert_message(image, result, timestamp)
                     print(f'Peso detectado: {result}kg - Mensagem enviada (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
                 else:
                     print(f'Peso detectado: {result}kg - Mensagem já enviada anteriormente (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
@@ -72,17 +82,29 @@ class Monitoring:
         except Exception as e:
             print(f'Erro ao converter leitura para inteiro: {e} (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
 
-    def send_message(self, image, weight, timestamp):
-        """Envia a imagem e o peso para a API do WhatsApp"""
-        image64 = self.watcher.ndarray_to_base64(image)
-        message = self.__message_text(timestamp, weight)
+    def send_weight_alert_message(self, image, weight, timestamp):
+        """Envia uma mensagem personalizada para a API do WhatsApp"""
+        message = self.__message_weight(timestamp, weight)
+        self.send_message(message, image, weight)
+        self.last_message_time = time.time()
+
+    def send_message(self, message, image=None, weight=None):
+        """Envia uma mensagem para a API do WhatsApp"""
+        image64 = None if image is None else self.watcher.ndarray_to_base64(image)
         try:
             requests.post(self.api_url, json = { 'image': image64, 'weight': weight, 'message': message, 'pid': self.process_id }, timeout = 300)
-            self.last_message_time = time.time()
         except requests.RequestException as e:
             print(f'Erro ao enviar mensagem: {e}')
 
-    def __message_text(self, timestamp, detected_weight):
+    def __message_start(self):
+        return "Iniciando monitoramento de peso no guincho."
+    
+    def __message_stop(self):
+        return f'''Encerrando monitoramento de peso no guincho.
+⚠ Peso máximo detectado: {self.max_weight_detected}kg
+🔎 Confirme o peso na imagem em anexo'''
+
+    def __message_weight(self, timestamp, detected_weight):
         return f'''⚠ POSSÍVEL EXCESSO DE PESO NO GUINCHO
 🔎 Confirme o peso na imagem em anexo
 🕒 Horário: {timestamp}
