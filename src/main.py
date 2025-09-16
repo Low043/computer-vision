@@ -21,7 +21,7 @@ class Monitoring:
         self.last_message_time = 0
 
         self.loop_delay = 1
-        self.message_delay = 10
+        self.message_delay = 45
 
         self.save_result_frame = True
         self.save_overlap_frames = True
