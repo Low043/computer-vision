@@ -1,11 +1,10 @@
 """Orquestra a execução do app"""
-import time
-from datetime import datetime
-import os
-import requests
-import dotenv
+from services.messager import Messager
 from services.watcher import Watcher
 from services.reader import Reader
+from datetime import datetime
+import dotenv
+import time
 
 STREAM_URL = dotenv.get_key(dotenv.find_dotenv(), 'STREAM_URL')
 API_URL = dotenv.get_key(dotenv.find_dotenv(), 'API_URL')
@@ -13,10 +12,11 @@ API_URL = dotenv.get_key(dotenv.find_dotenv(), 'API_URL')
 class Monitoring:
     """Classe responsável pela lógica do monitoramento da stream"""
     def __init__(self, stream_url, api_url):
+        self.messager = Messager(api_url)
         self.watcher = Watcher(stream_url).start()
         self.reader = Reader()
 
-        self.weight_trigger = 3000
+        self.weight_trigger = 2300
         self.valid_max_weight = 4000
         self.last_message_time = 0
 
@@ -29,16 +29,14 @@ class Monitoring:
         self.max_weight_detected = 0
         self.max_weight_detected_image = None
 
-        self.process_id = os.getpid()
-        self.api_url = api_url
-
     def start(self):
         """Inicia o monitoramento da stream"""
         try:
-            self.send_message(self.__message_start())
+            self.messager.send_start_message()
             self.__main_loop()
         except KeyboardInterrupt:
-            self.send_message(self.__message_stop(), self.max_weight_detected_image)
+            image64 = self.watcher.ndarray_to_base64(self.max_weight_detected_image)
+            self.messager.send_stop_message(image64, self.max_weight_detected)
         finally:
             self.watcher.stop()
 
@@ -71,7 +69,7 @@ class Monitoring:
 
             if self.weight_trigger <= weight_detected <= self.valid_max_weight:
                 if start_time - self.last_message_time >= self.message_delay:
-                    self.send_weight_alert_message(image, result, timestamp)
+                    self.send_weight_alert_message(image, weight_detected, timestamp)
                     print(f'Peso detectado: {result}kg - Mensagem enviada (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
                 else:
                     print(f'Peso detectado: {result}kg - Mensagem já enviada anteriormente (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
@@ -84,33 +82,9 @@ class Monitoring:
 
     def send_weight_alert_message(self, image, weight, timestamp):
         """Envia uma mensagem personalizada para a API do WhatsApp"""
-        message = self.__message_weight(timestamp, weight)
-        self.send_message(message, image, weight)
+        image64 = self.watcher.ndarray_to_base64(image)
+        self.messager.send_weight_exceeded_message(self.weight_trigger, weight, image64, timestamp)
         self.last_message_time = time.time()
-
-    def send_message(self, message, image=None, weight=None):
-        """Envia uma mensagem para a API do WhatsApp"""
-        image64 = None if image is None else self.watcher.ndarray_to_base64(image)
-        try:
-            requests.post(self.api_url, json = { 'image': image64, 'weight': weight, 'message': message, 'pid': self.process_id }, timeout = 300)
-        except requests.RequestException as e:
-            print(f'Erro ao enviar mensagem: {e}')
-
-    def __message_start(self):
-        return "Iniciando monitoramento de peso no guincho."
-    
-    def __message_stop(self):
-        return f'''Encerrando monitoramento de peso no guincho.
-⚠ Peso máximo detectado: {self.max_weight_detected}kg
-🔎 Confirme o peso na imagem em anexo'''
-
-    def __message_weight(self, timestamp, detected_weight):
-        return f'''⚠ POSSÍVEL EXCESSO DE PESO NO GUINCHO
-🔎 Confirme o peso na imagem em anexo
-🕒 Horário: {timestamp}
-🔴 Situação: Valor pode exceder o limite de {self.weight_trigger}kg
-📍 Local: Área de Carga - *Elevador Principal* - Extração 2 - Acesso B1
-👥 Notificação enviada a Central de monitoramento, Corpo técnico e Supervisores'''
 
 if __name__ == "__main__":
     monitoring = Monitoring(STREAM_URL, API_URL)
