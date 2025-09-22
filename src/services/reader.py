@@ -1,6 +1,6 @@
 """ Declaração da classe Reader"""
-from ultralytics import YOLO
 from typing import TypedDict
+from ultralytics import YOLO
 
 class ExtractedValue(TypedDict):
     text: str

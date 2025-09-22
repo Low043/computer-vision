@@ -35,8 +35,7 @@ class Monitoring:
             self.messager.send_start_message()
             self.__main_loop()
         except KeyboardInterrupt:
-            image64 = self.watcher.ndarray_to_base64(self.max_weight_detected_image)
-            self.messager.send_stop_message(image64, self.max_weight_detected)
+            self.messager.send_stop_message(self.max_weight_detected_image, self.max_weight_detected)
         finally:
             self.watcher.stop()
 
@@ -47,44 +46,64 @@ class Monitoring:
             frame = self.watcher.get_frame()
             [result, image] = self.reader.get_frame_text(frame)
 
-            self.check_and_send_message(result, image, start_time)
+            self.check_weight(result, image, start_time)
 
             if self.save_result_frame:
                 self.watcher.save_frame(image, 'result.jpg')
-            
+
             if self.save_overlap_frames:
                 self.watcher.save_frame(self.reader.last_overlap_frame, 'overlap.jpg')
                 self.reader.last_overlap_frame = None
 
             time.sleep(self.loop_delay)
 
-    def check_and_send_message(self, result, image, start_time):
+    def check_weight(self, result, image, start_time):
+        """Verifica se o peso excedeu o limite"""
         reading_time = time.time() - start_time
         timestamp = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+        time_since_last_message = start_time - self.last_message_time
+
         try:
             weight_detected = int(result)
-            if self.max_weight_detected < weight_detected <= self.valid_max_weight:
+
+            if weight_detected > self.valid_max_weight:
+                self.logger('weight_invalid', result, reading_time, timestamp)
+                return
+            if weight_detected > self.max_weight_detected:
                 self.max_weight_detected = weight_detected
                 self.max_weight_detected_image = image
+            if weight_detected < self.weight_trigger:
+                self.logger('weight_valid', result, reading_time, timestamp)
+                return
+            if time_since_last_message < self.message_delay:
+                self.logger('alert_already_sended', result, reading_time, timestamp)
+                return
 
-            if self.weight_trigger <= weight_detected <= self.valid_max_weight:
-                if start_time - self.last_message_time >= self.message_delay:
-                    self.send_weight_alert_message(image, weight_detected, timestamp)
-                    print(f'Peso detectado: {result}kg - Mensagem enviada (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
-                else:
-                    print(f'Peso detectado: {result}kg - Mensagem já enviada anteriormente (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
-            else:
-                self.weight_exceeded = False
-                print(f'Peso detectado: {result}kg - Dentro do limite (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
+            self.messager.send_weight_exceeded_message(self.weight_trigger, weight_detected, image, timestamp)
+            self.last_message_time = time.time()
+            self.logger('alert', result, reading_time, timestamp)
 
         except Exception as e:
-            print(f'Erro ao converter leitura para inteiro: {e} (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
+            self.logger('error', e, reading_time, timestamp)
 
-    def send_weight_alert_message(self, image, weight, timestamp):
-        """Envia uma mensagem personalizada para a API do WhatsApp"""
-        image64 = self.watcher.ndarray_to_base64(image)
-        self.messager.send_weight_exceeded_message(self.weight_trigger, weight, image64, timestamp)
-        self.last_message_time = time.time()
+    def logger(self, type, result = None, reading_time = None, timestamp = None):
+        """Registra o resultado da leitura no arquivo de log"""
+        match type:
+            case 'alert':
+                print(f'Peso detectado: {result}kg - Mensagem enviada (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
+
+            case 'alert_already_sended':
+                print(f'Peso detectado: {result}kg - Mensagem já enviada anteriormente (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
+
+            case 'weight_valid':
+                print(f'Peso detectado: {result}kg - Dentro do limite (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
+
+            case 'weight_invalid':
+                print(f'Peso detectado: {result}kg - Invalido (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
+
+            case 'error':
+                print(f'Erro ao converter leitura para inteiro: {result} (Reading Time: {reading_time:.2f}s) (Timestamp: {timestamp})')
+
 
 if __name__ == "__main__":
     monitoring = Monitoring(STREAM_URL, API_URL)
