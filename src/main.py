@@ -63,7 +63,7 @@ class Monitoring:
         timestamp = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
         try:
             weight_detected = int(result)
-            if weight_detected > self.max_weight_detected:
+            if self.max_weight_detected < weight_detected <= self.valid_max_weight:
                 self.max_weight_detected = weight_detected
                 self.max_weight_detected_image = image
 
