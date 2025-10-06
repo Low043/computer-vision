@@ -44,6 +44,9 @@ class Monitoring:
             start_time = time.time()
 
             frame = self.watcher.get_frame()
+            if frame is None:
+                print('Nenhum frame capturado da stream')
+                continue
             [result, image] = self.reader.get_frame_text(frame)
 
             self.check_weight(result, image, start_time)
