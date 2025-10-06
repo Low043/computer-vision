@@ -12,11 +12,7 @@ API_URL = dotenv.get_key(dotenv.find_dotenv(), 'API_URL')
 class Monitoring:
     """Classe responsável pela lógica do monitoramento da stream"""
     def __init__(self, stream_url, api_url):
-        self.messager = Messager(api_url)
-        self.watcher = Watcher(stream_url).start()
-        self.reader = Reader()
-
-        self.weight_trigger = 2300
+        self.weight_trigger = 2150
         self.valid_max_weight = 4000
         self.last_message_time = 0
 
@@ -28,6 +24,11 @@ class Monitoring:
 
         self.max_weight_detected = 0
         self.max_weight_detected_image = None
+
+        print(f'---------------------Iniciando monitoramento ({self.weight_trigger}kg)---------------------')
+        self.messager = Messager(api_url)
+        self.watcher = Watcher(stream_url).start()
+        self.reader = Reader()
 
     def start(self):
         """Inicia o monitoramento da stream"""
@@ -45,7 +46,6 @@ class Monitoring:
 
             frame = self.watcher.get_frame()
             if frame is None:
-                print('Nenhum frame capturado da stream')
                 continue
             [result, image] = self.reader.get_frame_text(frame)
 
