@@ -1,4 +1,8 @@
-# MonitoramentoBalanca
+# Computer Vision
+
+> [!NOTE]  
+> Esse repositório é um espelho de um projeto desenvolvido na Brazil Paraiba Mine. Trata-se de um sistema para monitoramento de vídeo 24h através de processamento de imagem por IA. O propósito da publicação deste repositório é meramente expositivo.
+
 ## Inrodução
 ### Monitoramento Balança com GPU
 É necessária toda configuração da GPU NVIDIA e do toolkit CUDA com a adição do cuDNN
