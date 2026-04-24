@@ -5,3 +5,7 @@ logs/
 .env
 *.png
 *.jpg
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml
